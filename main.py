@@ -18,7 +18,7 @@ def related_topics(current_KW_group):
     # Note: Payload only needed for interest_over_time(), interest_by_region() & related_queries()
     # Max number of queries is 5
     pytrends.build_payload(kw_list=current_KW_group, timeframe='today 3-m', geo='CA')
-    related_topics_dict = pytrends.related_queries()
+    related_topics_dict = pytrends.related_topics()
     related_topics_list = []
     for key,innerdict in related_topics_dict.items():
         for k,df in innerdict.items():
@@ -57,7 +57,7 @@ if __name__ =='__main__':
     # -- While loop for assembling 125 keywords -- #
     #while len(kw_list) <= 120:
         # Select the first group of 5 keywords for processing
-    current_KW_group = kw_list[current_KW_index:current_KW_index+5]
+    current_KW_group = kw_list[current_KW_index]
     related_topics_dict = related_topics(current_KW_group)
     #kw_list.append(related_topics_dict)
     #print(related_topics_dict)
