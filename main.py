@@ -14,24 +14,19 @@ pytrends = TrendReq(hl='en-US', tz=-240,retries=2)
 
 
 # Related Topics, returns a dictionary of dataframes
-def related_topics(current_KW_group):
+def related_topics(current_KW):
     # Note: Payload only needed for interest_over_time(), interest_by_region() & related_queries()
     # Max number of queries is 5
-    pytrends.build_payload(kw_list=current_KW_group, timeframe='today 3-m', geo='CA')
+    pytrends.build_payload(kw_list=current_KW, timeframe='today 3-m', geo='CA')
     related_topics_dict = pytrends.related_topics()
-    related_topics_list = []
+
     for key,innerdict in related_topics_dict.items():
         for k,df in innerdict.items():
-            # Selects the rising topics of each dataframe (instead of the top ones)
+            # Selects the rising topics of the dataframe (instead of the top ones)
             if str(k) == 'rising' and df is not None:
-                # Selects the top 5 closest topics in the "query" column and converts them to a list
-                series = df.loc[0:4,'query'].to_list()
-                # Appends this list to the related topics list
-                related_topics_list.append(series)
-
-    # Flattens the list of lists into just a list.
-    related_topics_list = [item for sublist in related_topics_list for item in sublist]
-    print(len(related_topics_list))
+                df = df.drop(columns=['link','value'])
+                df.to_html('temp.html')
+                return(df)
 
 
 def find_interest():
@@ -46,27 +41,29 @@ def find_interest():
 
 
 
-kw_list = ["Juul","Tiktok","Sam","Nalgene","Canada","Adderall","Android","iPhone","Yukon","Vyvanse"]
+kw_list = ["Juul","Tiktok","Canada"]
 current_KW_index = 0
-
+related_topics_df_list = []
 
 
 if __name__ =='__main__':
     print("The name is main, bitch!")
     
-    # -- While loop for assembling 125 keywords -- #
-    #while len(kw_list) <= 120:
-        # Select the first group of 5 keywords for processing
-    current_KW_group = kw_list[current_KW_index]
-    related_topics_dict = related_topics(current_KW_group)
-    #kw_list.append(related_topics_dict)
-    #print(related_topics_dict)
-    #current_KW_index +=6
+    # -- While loop for assembling keywords -- #
+    #while len(kw_list) <= 10:
+
+    #Select the first keyword as a single-item list
+    current_KW = [kw_list[current_KW_index]]
+    #Creates a list of dataframes with the returned results
+    related_topics_df_list.append(related_topics(current_KW))
+    
+    current_KW_index +=1
 
 
-    # print("Finding similar topics for: \n\n", current_KW_group)
+
+    # print("Finding similar topics for: \n\n", current_KW)
     #     #Finds and returns keywords for the current group
-    # latest_new_keywords = related_topics(current_KW_group)
+    # latest_new_keywords = related_topics(current_KW)
     # for i,k in latest_new_keywords:
     #     for eachdataframe in k:
     #         print(str(eachdataframe))
