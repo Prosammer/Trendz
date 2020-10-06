@@ -13,9 +13,15 @@ import plotly.express as px
 # I'd also like a "parent" word column for tree diagrams.
 
 
-# Only needs to run once - all requests use this session
-# Timezone is 240 (could be -240 as well?)
-pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
+def df_cleaner(df):
+    #Drops any duplicates based on topic_title, and then fixes up the index.
+    preclean_len = len(df.index)
+    df.drop_duplicates(subset='topic_title', keep='first', inplace=False).reset_index(drop=True)
+    cleaned_len = len(df.index)
+    if preclean_len != cleaned_len:
+        print(abs(preclean_len-cleaned_len)," duplicate records were dropped.")
+    return df
+
 
 
 # Related Topics, returns a dictionary of dataframes
@@ -37,6 +43,9 @@ def related_topics(current_KW):
 
 
 def find_interest():
+    # if there are unchecked keywords in masterkeyword DF:
+        #search for each keyword individually for the last year
+        # Add interest numbers to master_interest_df
     print("Commencing interest_over_time search...")
     interest_over_time_df = pytrends.interest_over_time()
     print(interest_over_time_df.head())
@@ -45,28 +54,21 @@ def find_interest():
     df.to_pickle(F"{kw_list[0]}_vs_{kw_list[1]}.pkl") 
 
 
-
-
-
-kw_list = ["Canada","Juul","Tiktok","Apple","Buddhism","Axe-Throwing"]
-index_kw_list = 0
-related_topics_df_list = []
-
-
-if __name__ =='__main__':
-    
-    # -- While loop for assembling keywords -- #
+def keyword_finder():
+# -- While loop for assembling keywords -- #
     while len(kw_list) <= 25:
-
-        #Select the first keyword as a single-item list
+        # Select the first keyword as a single-item list
         current_KW = [kw_list[index_kw_list]]
-        #Creates a list of dataframes with the returned results (to be merged later)
+        
+        # Creates a list of dataframes with the returned results (to be merged later)
         newtopics_df = related_topics(current_KW)
         related_topics_df_list.append(newtopics_df)
-        #Adds keywords to kw_list for efficiency
+        # Adds keywords to kw_list for efficiency
         try:
             for i in newtopics_df.topic_title:
-                kw_list.append(i)
+                # Only adds unique keywords
+                if i not in kw_list:
+                    kw_list.append(i)
         except:
             pass
         index_kw_list +=1
@@ -75,6 +77,37 @@ if __name__ =='__main__':
         time.sleep(1)
 
 
-    masterkeywordDF = pd.concat(related_topics_df_list)
+def masterKW_adder(masterkeywordDF):
+    print("Running masterKW_adder()")
+    sessionKeywords = pd.concat(related_topics_df_list)
+    joinedKeywords = pd.concat([sessionKeywords, masterkeywordDF])
+    cleanedKeywords = df_cleaner(joinedKeywords)
+    return cleanedKeywords
+    
+
+
+
+
+kw_list = ["Canada","Juul","Tiktok","Apple","Buddhism","Axe-Throwing"]
+index_kw_list = 0
+related_topics_df_list = []
+
+# Only needs to run once - all requests use this session
+# Timezone is 240 (could be -240 as well?)
+pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
+
+
+
+if __name__ =='__main__':
+    
+    masterkeywordDF = pd.read_pickle("masterkeywordDF.pkl")
+    # keyword_finder()
+    masterkeywordDF = masterKW_adder(masterkeywordDF)
     masterkeywordDF.to_pickle("masterkeywordDF.pkl")
     masterkeywordDF.to_html('masterkeywordDF.html')
+    # masterkeywordDF["checked"] = ""
+    
+    
+
+    
+    
