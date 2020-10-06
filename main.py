@@ -15,7 +15,15 @@ import plotly.express as px
 
 # Only needs to run once - all requests use this session
 # Timezone is 240 (could be -240 as well?)
-pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
+
+
+def dupe_cleaner(df):
+    preclean_len = len(df.index)
+    df.drop_duplicates(subset='topic_title', keep='first', inplace=False)
+    cleaned_len = len(df.index)
+    if preclean_len != cleaned_len:
+        print(abs(preclean_len-cleaned_len)," duplicate records were dropped.")
+    return df
 
 
 # Related Topics, returns a dictionary of dataframes
@@ -45,28 +53,20 @@ def find_interest():
     df.to_pickle(F"{kw_list[0]}_vs_{kw_list[1]}.pkl") 
 
 
-
-
-
-kw_list = ["Canada","Juul","Tiktok","Apple","Buddhism","Axe-Throwing"]
-index_kw_list = 0
-related_topics_df_list = []
-
-
-if __name__ =='__main__':
-    
-    # -- While loop for assembling keywords -- #
+def keyword_adder():
+# -- While loop for assembling keywords -- #
     while len(kw_list) <= 25:
-
-        #Select the first keyword as a single-item list
+        # Select the first keyword as a single-item list
         current_KW = [kw_list[index_kw_list]]
-        #Creates a list of dataframes with the returned results (to be merged later)
+        # Creates a list of dataframes with the returned results (to be merged later)
         newtopics_df = related_topics(current_KW)
         related_topics_df_list.append(newtopics_df)
-        #Adds keywords to kw_list for efficiency
+        # Adds keywords to kw_list for efficiency
         try:
             for i in newtopics_df.topic_title:
-                kw_list.append(i)
+                # Only adds unique keywords
+                if i not in kw_list:
+                    kw_list.append(i)
         except:
             pass
         index_kw_list +=1
@@ -74,6 +74,23 @@ if __name__ =='__main__':
         print("Length of kw_list",len(kw_list))
         time.sleep(1)
 
+ 
+
+
+
+
+
+
+
+pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
+kw_list = ["Canada","Juul","Tiktok","Apple","Buddhism","Axe-Throwing"]
+index_kw_list = 0
+related_topics_df_list = []
+
+
+if __name__ =='__main__':
+    # keyword_adder()
+    # dupe_cleaner()
 
     masterkeywordDF = pd.concat(related_topics_df_list)
     masterkeywordDF.to_pickle("masterkeywordDF.pkl")
