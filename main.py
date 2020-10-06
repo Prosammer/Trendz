@@ -6,6 +6,11 @@ import plotly.express as px
 
 
 ## TODO: Need to find fix so that I can find 5 related terms at a time (fewer requests)
+## TODO: Focus on specific categories for more actionable insights?
+
+## TODO: Next I need to add columns to the masterkeywordDF so that I know 
+# which words have been searched for. Then I need to add logic to only search new words. 
+# I'd also like a "parent" word column for tree diagrams.
 
 
 # Only needs to run once - all requests use this session
@@ -26,7 +31,7 @@ def related_topics(current_KW):
                 if str(k) == 'rising' and df is not None:
                     df = df.drop(columns=['link','value'])
                     df.to_html('temp.html')
-                    return(df)
+                    return df 
     except:
         print("Keyword didn't work!")
 
