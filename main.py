@@ -13,9 +13,9 @@ import plotly.express as px
 # I'd also like a "parent" word column for tree diagrams.
 
 
-def dupe_cleaner(df):
+def df_cleaner(df):
+    #Drops any duplicates based on topic_title, and then fixes up the index.
     preclean_len = len(df.index)
-    #Drop any duplicates based on topic_title, and then fix up the index.
     df.drop_duplicates(subset='topic_title', keep='first', inplace=False).reset_index(drop=True)
     cleaned_len = len(df.index)
     if preclean_len != cleaned_len:
@@ -81,7 +81,7 @@ def masterKW_adder(masterkeywordDF):
     print("Running masterKW_adder()")
     sessionKeywords = pd.concat(related_topics_df_list)
     joinedKeywords = pd.concat([sessionKeywords, masterkeywordDF])
-    cleanedKeywords = dupe_cleaner(joinedKeywords)
+    cleanedKeywords = df_cleaner(joinedKeywords)
     return cleanedKeywords
     
 
