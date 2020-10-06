@@ -59,6 +59,7 @@ def keyword_finder():
     while len(kw_list) <= 25:
         # Select the first keyword as a single-item list
         current_KW = [kw_list[index_kw_list]]
+        
         # Creates a list of dataframes with the returned results (to be merged later)
         newtopics_df = related_topics(current_KW)
         related_topics_df_list.append(newtopics_df)
