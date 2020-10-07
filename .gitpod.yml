@@ -3,4 +3,9 @@ image:
 
 tasks:
   - init: 'echo "Looking good today bb"'
-    command: 'echo "butt u know that"'
+    command: 'ngrok authtoken "$ngrokAuth'
+    command: 'ngrok tcp 3306'
+
+ports:
+  - port: 3306
+  - port: 4040
