@@ -65,7 +65,8 @@ def retrieve_childless_keywords(num_of_keywords):
             cursor.execute(sqlupdate)
             cursor.execute(sqlselect)
             result = cursor.fetchall()
-            print("This is the result of the sqlselect: ", str(result))
+            connection.commit()
+            connection.close()
             # Returns a list of key:value dicts with topic_tile and keyword
             return result
 
@@ -89,9 +90,7 @@ engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}"
 pw="***REMOVED***",
 db="trends"))
 
-kw_list = ["Canada","Juul","Tiktok","Apple","Buddhism","Axe-Throwing"]
-index_kw_list = 0
-related_topics_df_list = []
+
 
 # Only needs to run once - all requests use this session
 # Timezone is 240 (could be -240 as well?)
@@ -103,19 +102,20 @@ numofcycles = 10
 if __name__ =='__main__':
     
     print("Number of Cycles to run: ", str(numofcycles))
-    time.sleep(1)
+    time.sleep(1)s
     #Find numofcycles childless keywords in database - returns a list of key:value dicts
     childless_keywords_list = retrieve_childless_keywords(numofcycles)
-    
     children_kw_list =[]
     #Find children keywords for all childless keywords
     for i in range(numofcycles):
+        print(str(childless_keywords_list[i].values()))
         related_keywords = related_topics(childless_keywords_list[i].values())
         children_kw_list.append(related_keywords)
 
-
     #Concatenate all keywords into a single dataframe before posting
+    print("Running list concatenator...\n\n")
     children_df = df_list_concatenator(children_kw_list)
+    print("Running subnewkeywords...\n\n")
     submitnewkeywords(children_df)
     print("New keywords submitted!")
     
