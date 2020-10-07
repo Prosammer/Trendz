@@ -40,6 +40,7 @@ def df_list_concatenator(dflist):
 
 
 def related_topics(current_KW):
+    print("The topic childless topic that we are about to find related topics for is: ", str(current_KW))
     # Note: Max number of queries is 5. Payload only needed for interest_over_time(), interest_by_region() & related_queries()
     pytrends.build_payload(kw_list=current_KW, timeframe='today 3-m', geo='CA')
     related_topics_dict = pytrends.related_topics()
@@ -51,6 +52,7 @@ def related_topics(current_KW):
                     df = df.drop(columns=['link','value'])
                     df['parent'] = str(current_KW)
                     return df 
+                    print(df)
                     # Returns a single dataframe
     except:
         print("Keyword didn't work - Maybe not enough trends data?")
@@ -72,10 +74,20 @@ def retrieve_childless_keywords(num_of_keywords):
 
 
 def submitnewkeywords(df):
-    # For each df in list
+    #Uses sqlalchemy to submit the concatenated dataframe to mysql (doesn't check for duplicates)
     df.to_sql('keywords', con = engine, if_exists = 'append', chunksize = 1000)
 
+    # Remove any freshly-added duplicates 
+    with connection.cursor() as cursor:
+        sqlselect = ""
+        cursor.execute(sqlselect)
+        result = cursor.fetchall()
+        connection.commit()
+        connection.close()
+
+
 # Connect to the database
+
 connection = pymysql.connect(host='localhost',
 user='root',
 password='***REMOVED***',
@@ -102,7 +114,6 @@ numofcycles = 10
 if __name__ =='__main__':
     
     print("Number of Cycles to run: ", str(numofcycles))
-    time.sleep(1)s
     #Find numofcycles childless keywords in database - returns a list of key:value dicts
     childless_keywords_list = retrieve_childless_keywords(numofcycles)
     children_kw_list =[]
