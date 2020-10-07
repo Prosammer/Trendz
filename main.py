@@ -2,15 +2,15 @@ import pandas as pd
 import os, requests, time, operator
 from pytrends.request import TrendReq
 import plotly.express as px
+import pymysql.cursors
+from sqlalchemy import create_engine
+
 
 
 
 ## TODO: Need to find fix so that I can find 5 related terms at a time (fewer requests)
 ## TODO: Focus on specific categories for more actionable insights?
-
-## TODO: Next I need to add columns to the masterkeywordDF so that I know 
-# which words have been searched for. Then I need to add logic to only search new words. 
-# I'd also like a "parent" word column for tree diagrams.
+## TODO: Change all mysql types to be correct (bigint > int, text to varchar etc.)
 
 
 def df_cleaner(df):
@@ -24,7 +24,7 @@ def df_cleaner(df):
 
 
 
-# Related Topics, returns a dictionary of dataframes
+# Related Topics, returns a single dataframe
 def related_topics(current_KW):
     # Note: Payload only needed for interest_over_time(), interest_by_region() & related_queries()
     # Max number of queries is 5
@@ -36,10 +36,11 @@ def related_topics(current_KW):
                 # Selects the rising topics of the dataframe (instead of the top ones)
                 if str(k) == 'rising' and df is not None:
                     df = df.drop(columns=['link','value'])
-                    df.to_html('temp.html')
+                    #df = df.add(columns=['checked'])
+                    df['checked'] = str(current_KW)
                     return df 
     except:
-        print("Keyword didn't work!")
+        print("Keyword didn't work - Maybe not enough trends data?")
 
 
 def find_interest():
@@ -50,43 +51,42 @@ def find_interest():
     interest_over_time_df = pytrends.interest_over_time()
     print(interest_over_time_df.head())
 
-    print("Interest_over_time data acquired, pickling...")
-    df.to_pickle(F"{kw_list[0]}_vs_{kw_list[1]}.pkl") 
-
-
-def keyword_finder():
-# -- While loop for assembling keywords -- #
-    while len(kw_list) <= 25:
-        # Select the first keyword as a single-item list
-        current_KW = [kw_list[index_kw_list]]
-        
-        # Creates a list of dataframes with the returned results (to be merged later)
-        newtopics_df = related_topics(current_KW)
-        related_topics_df_list.append(newtopics_df)
-        # Adds keywords to kw_list for efficiency
-        try:
-            for i in newtopics_df.topic_title:
-                # Only adds unique keywords
-                if i not in kw_list:
-                    kw_list.append(i)
-        except:
-            pass
-        index_kw_list +=1
-        print("Index: ",index_kw_list)
-        print("Length of kw_list",len(kw_list))
-        time.sleep(1)
-
-
-def masterKW_adder(masterkeywordDF):
-    print("Running masterKW_adder()")
-    sessionKeywords = pd.concat(related_topics_df_list)
-    joinedKeywords = pd.concat([sessionKeywords, masterkeywordDF])
-    cleanedKeywords = df_cleaner(joinedKeywords)
+def df_list_concatenator(dflist):
+    df = pd.concat(dflist)
+    cleanedKeywords = df_cleaner(df)
     return cleanedKeywords
     
 
 
+def retrieve_childless_keywords(cycles):
+    with connection.cursor() as cursor:
+            # Read a single record
+            sqlquery = "SElECT topic_title FROM keywords WHERE 'has_child' IS FALSE LIMIT %d" % cycles
+            cursor.execute(sqlquery)
+            result = cursor.fetchall()
+            print(result)
+            # Returns a list of key:value dicts with topic_tile and keyword
+            return result
 
+
+def submitnewkeywords(df):
+    # For each df in list
+    df.to_sql('keywords', con = engine, if_exists = 'append', chunksize = 1000)
+
+# Connect to the database
+connection = pymysql.connect(host='localhost',
+user='root',
+password='***REMOVED***',
+db='trends',
+charset='utf8mb4',
+cursorclass=pymysql.cursors.DictCursor)
+
+
+# create sqlalchemy engine
+engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}"
+.format(user="root",
+pw="***REMOVED***",
+db="trends"))
 
 kw_list = ["Canada","Juul","Tiktok","Apple","Buddhism","Axe-Throwing"]
 index_kw_list = 0
@@ -96,17 +96,25 @@ related_topics_df_list = []
 # Timezone is 240 (could be -240 as well?)
 pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
 
-
+# Set desired number of cycles (for easy testing)
+numofcycles = 10
 
 if __name__ =='__main__':
     
-    masterkeywordDF = pd.read_pickle("masterkeywordDF.pkl")
-    print(masterkeywordDF)
-    # # keyword_finder()
-    # masterkeywordDF = masterKW_adder(masterkeywordDF)
-    # masterkeywordDF.to_pickle("masterkeywordDF.pkl")
-    # masterkeywordDF.to_html('masterkeywordDF.html')
-    # # masterkeywordDF["checked"] = ""
+    print("Number of Cycles to run: ", str(numofcycles))
+    time.sleep(1)
+    #Find numofcycles childless keywords in database - returns a list of key:value dicts
+    childless_keywords_list = retrieve_childless_keywords(numofcycles)
+    
+    children_kw_list =[]
+    #Find children keywords for all childless keywords
+    for i in range(numofcycles):
+        children_kw_list.append(related_topics(childless_keywords_list[i].values()))
+
+    #Concatenate all keywords into a single dataframe before posting
+    children_df = df_list_concatenator(children_kw_list)
+    submitnewkeywords(children_df)
+    print("New keywords submitted!")
     
     
 
