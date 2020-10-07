@@ -101,11 +101,12 @@ pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
 if __name__ =='__main__':
     
     masterkeywordDF = pd.read_pickle("masterkeywordDF.pkl")
-    # keyword_finder()
-    masterkeywordDF = masterKW_adder(masterkeywordDF)
-    masterkeywordDF.to_pickle("masterkeywordDF.pkl")
-    masterkeywordDF.to_html('masterkeywordDF.html')
-    # masterkeywordDF["checked"] = ""
+    print(masterkeywordDF)
+    # # keyword_finder()
+    # masterkeywordDF = masterKW_adder(masterkeywordDF)
+    # masterkeywordDF.to_pickle("masterkeywordDF.pkl")
+    # masterkeywordDF.to_html('masterkeywordDF.html')
+    # # masterkeywordDF["checked"] = ""
     
     
 
