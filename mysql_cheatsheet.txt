@@ -1,0 +1,6 @@
+# Login:
+mysql -u root -p
+Jura55ic5
+# shows first 10 records
+select * from keywords order by 'index' limit 10;
+
