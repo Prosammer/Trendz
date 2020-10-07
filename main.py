@@ -24,25 +24,6 @@ def df_cleaner(df):
 
 
 
-# Related Topics, returns a single dataframe
-def related_topics(current_KW):
-    # Note: Payload only needed for interest_over_time(), interest_by_region() & related_queries()
-    # Max number of queries is 5
-    pytrends.build_payload(kw_list=current_KW, timeframe='today 3-m', geo='CA')
-    related_topics_dict = pytrends.related_topics()
-    try:
-        for key,innerdict in related_topics_dict.items():
-            for k,df in innerdict.items():
-                # Selects the rising topics of the dataframe (instead of the top ones)
-                if str(k) == 'rising' and df is not None:
-                    df = df.drop(columns=['link','value'])
-                    #df = df.add(columns=['checked'])
-                    df['checked'] = str(current_KW)
-                    return df 
-    except:
-        print("Keyword didn't work - Maybe not enough trends data?")
-
-
 def find_interest():
     # if there are unchecked keywords in masterkeyword DF:
         #search for each keyword individually for the last year
@@ -58,13 +39,33 @@ def df_list_concatenator(dflist):
     
 
 
-def retrieve_childless_keywords(cycles):
-    with connection.cursor() as cursor:
+def related_topics(current_KW):
+    # Note: Max number of queries is 5. Payload only needed for interest_over_time(), interest_by_region() & related_queries()
+    pytrends.build_payload(kw_list=current_KW, timeframe='today 3-m', geo='CA')
+    related_topics_dict = pytrends.related_topics()
+    try:
+        for key,innerdict in related_topics_dict.items():
+            for k,df in innerdict.items():
+                # Selects the rising topics of the dataframe (instead of the top ones)
+                if str(k) == 'rising' and df is not None:
+                    df = df.drop(columns=['link','value'])
+                    df['parent'] = str(current_KW)
+                    return df 
+                    # Returns a single dataframe
+    except:
+        print("Keyword didn't work - Maybe not enough trends data?")
+
+
+
+def retrieve_childless_keywords(num_of_keywords):
+    with connection.cursor() as cursor: 
             # Read a single record
-            sqlquery = "SElECT topic_title FROM keywords WHERE 'has_child' IS FALSE LIMIT %d" % cycles
-            cursor.execute(sqlquery)
+            sqlupdate = "UPDATE keywords SET checked = TRUE WHERE checked IS NOT TRUE ORDER BY 'index' DESC LIMIT %d;"  % num_of_keywords
+            sqlselect = "SELECT topic_title FROM keywords WHERE checked IS NOT TRUE ORDER BY 'index' DESC LIMIT %d;" % num_of_keywords
+            cursor.execute(sqlupdate)
+            cursor.execute(sqlselect)
             result = cursor.fetchall()
-            print(result)
+            print("This is the result of the sqlselect: ", str(result))
             # Returns a list of key:value dicts with topic_tile and keyword
             return result
 
@@ -109,7 +110,9 @@ if __name__ =='__main__':
     children_kw_list =[]
     #Find children keywords for all childless keywords
     for i in range(numofcycles):
-        children_kw_list.append(related_topics(childless_keywords_list[i].values()))
+        related_keywords = related_topics(childless_keywords_list[i].values())
+        children_kw_list.append(related_keywords)
+
 
     #Concatenate all keywords into a single dataframe before posting
     children_df = df_list_concatenator(children_kw_list)
