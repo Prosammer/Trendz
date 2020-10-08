@@ -4,5 +4,5 @@ image:
 tasks:
   - command: echo "You're the man now dog"
     name: Hey buddy
-  - command: ngrok tcp 3306 && ngrok authtoken $ngrokAuth
+  - command: ngrok authtoken $ngrokAuth && ngrok tcp 3306
     name: ngrok connection
