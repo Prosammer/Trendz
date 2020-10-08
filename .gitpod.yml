@@ -6,9 +6,3 @@ tasks:
   command: npm i -g ngrok
   command: ngrok authtoken "$ngrokAuth"
   command: ngrok tcp 3306
-
-ports:
-  - port: 3306
-  - port: 4040
-
-  # Adding note to let me push this branch
