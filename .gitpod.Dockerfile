@@ -1,6 +1,6 @@
 FROM gitpod/workspace-mysql
 
-RUN npm i -g ngrok
+RUN sudo apt-get update
 # Install custom tools, runtimes, etc.
 # For example "bastet", a command-line tetris clone:
 # RUN brew install bastet
