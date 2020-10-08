@@ -66,11 +66,11 @@ def retrieve_childless_keywords(num_of_keywords):
             sqlupdate = "UPDATE keywords SET checked = TRUE WHERE checked IS NOT TRUE ORDER BY 'id' DESC LIMIT %d;" % num_of_keywords
             cursor.execute(sqlselect)
             result = cursor.fetchall()
-            return result
+            # Returns a list of key:value dicts with 'topic_title':keyword
             cursor.execute(sqlupdate)
             connection.commit()
             connection.close()
-            # Returns a list of key:value dicts with 'topic_title':keyword
+            return result
             
 
 
@@ -116,16 +116,21 @@ if __name__ =='__main__':
     
     print("Number of Cycles to run: ", str(numofcycles))
     #Find numofcycles childless keywords in database - returns a list of key:value dicts
-    childless_keywords_list = retrieve_childless_keywords(numofcycles)
-    print(childless_keywords_list)
-    time.sleep(4)
+    messy_childless_keywords = retrieve_childless_keywords(numofcycles)
+    childless_keywords_list = [f['topic_title'] for f in messy_childless_keywords]
     children_kw_list =[]
+    
     #Find children keywords for all childless keywords
-    for i in range(numofcycles):
-        print('Loop: ', str(i), " Keyword Type: ",type(childless_keywords_list[i].values()), " Keyword is:", str(childless_keywords_list[i].values()))
-        related_keywords = related_topics(childless_keywords_list[i].values())
-        children_kw_list.append(related_keywords)
-
+    for i in childless_keywords_list:
+        print("Keyword Type: ",type(i), " Keyword is:", str(i))
+        time.sleep(2)
+        try:
+            related_keywords = related_topics(i)
+            print("Returned related keywords type is: ",type(related_keywords), " Stringified is:", str(related_keywords))
+            children_kw_list.append(related_keywords)
+        except Exception:
+            print("!!! EXCEPTION BRUV")
+            
     #Concatenate all keywords into a single dataframe before posting
     print("Running list concatenator...\n\n")
     children_df = df_list_concatenator(children_kw_list)
