@@ -62,15 +62,16 @@ def related_topics(current_KW):
 def retrieve_childless_keywords(num_of_keywords):
     with connection.cursor() as cursor: 
             # Read a single record
-            sqlselect = "SELECT topic_title FROM keywords WHERE checked IS NOT TRUE ORDER BY 'index' DESC LIMIT 4;"# % num_of_keywords
-            sqlupdate = "UPDATE keywords SET checked = TRUE WHERE checked IS NOT TRUE ORDER BY 'index' DESC LIMIT 4;" # % num_of_keywords
+            sqlselect = "SELECT topic_title FROM keywords WHERE checked IS NOT TRUE ORDER BY 'id' DESC LIMIT %d;" % num_of_keywords
+            sqlupdate = "UPDATE keywords SET checked = TRUE WHERE checked IS NOT TRUE ORDER BY 'id' DESC LIMIT %d;" % num_of_keywords
             cursor.execute(sqlselect)
-            cursor.execute(sqlupdate)
             result = cursor.fetchall()
+            return result
+            cursor.execute(sqlupdate)
             connection.commit()
             connection.close()
             # Returns a list of key:value dicts with 'topic_title':keyword
-            return result
+            
 
 
 def submitnewkeywords(df):
@@ -109,27 +110,27 @@ db="trends"))
 pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
 
 # Set desired number of cycles (for easy testing)
-numofcycles = 4
+numofcycles = 5
 
 if __name__ =='__main__':
     
     print("Number of Cycles to run: ", str(numofcycles))
     #Find numofcycles childless keywords in database - returns a list of key:value dicts
     childless_keywords_list = retrieve_childless_keywords(numofcycles)
-    print(type(childless_keywords_list))
+    print(childless_keywords_list)
     time.sleep(4)
     children_kw_list =[]
     #Find children keywords for all childless keywords
     for i in range(numofcycles):
-        print('Finding related keywords for: ',str(childless_keywords_list[i].values()))
+        print('Loop: ', str(i), " Keyword Type: ",type(childless_keywords_list[i].values()), " Keyword is:", str(childless_keywords_list[i].values()))
         related_keywords = related_topics(childless_keywords_list[i].values())
         children_kw_list.append(related_keywords)
 
     #Concatenate all keywords into a single dataframe before posting
     print("Running list concatenator...\n\n")
-    #children_df = df_list_concatenator(children_kw_list)
+    children_df = df_list_concatenator(children_kw_list)
     print("Running subnewkeywords...\n\n")
-    #submitnewkeywords(children_df)
+    submitnewkeywords(children_df)
     print("New keywords submitted!")
     
     

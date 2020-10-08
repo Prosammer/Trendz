@@ -3,4 +3,5 @@ image:
 
 tasks:
   - init: 'echo "Looking good today bb"'
-    command: 'echo "butt u know that"'
+  - command: 'ngrok authtoken $ngrokAuth'
+  command: 'ngrok tcp 3306'
