@@ -40,7 +40,6 @@ def df_list_concatenator(dflist):
 
 
 def related_topics(current_KW):
-    print("The topic childless topic that we are about to find related topics for is: ", str(current_KW))
     # Note: Max number of queries is 5. Payload only needed for interest_over_time(), interest_by_region() & related_queries()
     pytrends.build_payload(kw_list=current_KW, timeframe='today 3-m', geo='CA')
     related_topics_dict = pytrends.related_topics()
@@ -51,8 +50,9 @@ def related_topics(current_KW):
                 if str(k) == 'rising' and df is not None:
                     df = df.drop(columns=['link','value'])
                     df['parent'] = str(current_KW)
-                    return df 
                     print(df)
+                    return df 
+                    
                     # Returns a single dataframe
     except:
         print("Keyword didn't work - Maybe not enough trends data?")
@@ -62,14 +62,14 @@ def related_topics(current_KW):
 def retrieve_childless_keywords(num_of_keywords):
     with connection.cursor() as cursor: 
             # Read a single record
-            sqlupdate = "UPDATE keywords SET checked = TRUE WHERE checked IS NOT TRUE ORDER BY 'index' DESC LIMIT %d;"  % num_of_keywords
-            sqlselect = "SELECT topic_title FROM keywords WHERE checked IS NOT TRUE ORDER BY 'index' DESC LIMIT %d;" % num_of_keywords
-            cursor.execute(sqlupdate)
+            sqlselect = "SELECT topic_title FROM keywords WHERE checked IS NOT TRUE ORDER BY 'index' DESC LIMIT 4;"# % num_of_keywords
+            sqlupdate = "UPDATE keywords SET checked = TRUE WHERE checked IS NOT TRUE ORDER BY 'index' DESC LIMIT 4;" # % num_of_keywords
             cursor.execute(sqlselect)
+            cursor.execute(sqlupdate)
             result = cursor.fetchall()
             connection.commit()
             connection.close()
-            # Returns a list of key:value dicts with topic_tile and keyword
+            # Returns a list of key:value dicts with 'topic_title':keyword
             return result
 
 
@@ -109,25 +109,27 @@ db="trends"))
 pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
 
 # Set desired number of cycles (for easy testing)
-numofcycles = 10
+numofcycles = 4
 
 if __name__ =='__main__':
     
     print("Number of Cycles to run: ", str(numofcycles))
     #Find numofcycles childless keywords in database - returns a list of key:value dicts
     childless_keywords_list = retrieve_childless_keywords(numofcycles)
+    print(type(childless_keywords_list))
+    time.sleep(4)
     children_kw_list =[]
     #Find children keywords for all childless keywords
     for i in range(numofcycles):
-        print(str(childless_keywords_list[i].values()))
+        print('Finding related keywords for: ',str(childless_keywords_list[i].values()))
         related_keywords = related_topics(childless_keywords_list[i].values())
         children_kw_list.append(related_keywords)
 
     #Concatenate all keywords into a single dataframe before posting
     print("Running list concatenator...\n\n")
-    children_df = df_list_concatenator(children_kw_list)
+    #children_df = df_list_concatenator(children_kw_list)
     print("Running subnewkeywords...\n\n")
-    submitnewkeywords(children_df)
+    #submitnewkeywords(children_df)
     print("New keywords submitted!")
     
     

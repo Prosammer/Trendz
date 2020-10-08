@@ -31,7 +31,8 @@ def df_cleaner(df):
 
 masterkeywordDF = pd.read_pickle("masterkeywordDF.pkl")
 # Insert whole DataFrame into MySQL
-masterkeywordDF.to_sql('dfkeywords', con = engine, if_exists = 'append', chunksize = 1000)
+cleaneddf = df_cleaner(masterkeywordDF)
+cleaneddf.to_sql('keywords', con = engine, if_exists = 'append', chunksize = 1000)
 
 #masterkeywordDF.to_sql('DFkeywords', con, flavor='mysql', schema=None, if_exists='fail', index=True, index_label=None, chunksize=None, dtype=None)
 
