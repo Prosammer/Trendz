@@ -10,7 +10,6 @@ from sqlalchemy import create_engine
 
 ## TODO: Need to find fix so that I can find 5 related terms at a time (fewer requests)
 ## TODO: Focus on specific categories for more actionable insights?
-## TODO: Change all mysql types to be correct (bigint > int, text to varchar etc.)
 
 
 def df_cleaner(df):
@@ -40,22 +39,24 @@ def df_list_concatenator(dflist):
 
 
 def related_topics(current_KW):
+    time.sleep(2)
     # Note: Max number of queries is 5. Payload only needed for interest_over_time(), interest_by_region() & related_queries()
-    pytrends.build_payload(kw_list=current_KW, timeframe='today 3-m', geo='CA')
+    pytrends.build_payload(kw_list=[current_KW], timeframe='today 3-m', geo='CA')
     related_topics_dict = pytrends.related_topics()
     try:
         for key,innerdict in related_topics_dict.items():
             for k,df in innerdict.items():
                 # Selects the rising topics of the dataframe (instead of the top ones)
                 if str(k) == 'rising' and df is not None:
+                    print(df.head())
                     df = df.drop(columns=['link','value'])
                     df['parent'] = str(current_KW)
-                    print(df)
+                    
                     return df 
                     
                     # Returns a single dataframe
-    except:
-        print("Keyword didn't work - Maybe not enough trends data?")
+    except Exception as e:
+        print("This is the exception:\n\n\n", str(e))
 
 
 
@@ -76,15 +77,7 @@ def retrieve_childless_keywords(num_of_keywords):
 
 def submitnewkeywords(df):
     #Uses sqlalchemy to submit the concatenated dataframe to mysql (doesn't check for duplicates)
-    df.to_sql('keywords', con = engine, if_exists = 'append', chunksize = 1000)
-
-    # Remove any freshly-added duplicates 
-    with connection.cursor() as cursor:
-        sqlselect = ""
-        cursor.execute(sqlselect)
-        result = cursor.fetchall()
-        connection.commit()
-        connection.close()
+    df.to_sql('keywords',index = False, con = engine, if_exists = 'append', chunksize = 1000)
 
 
 # Connect to the database
@@ -122,14 +115,12 @@ if __name__ =='__main__':
     
     #Find children keywords for all childless keywords
     for i in childless_keywords_list:
-        print("Keyword Type: ",type(i), " Keyword is:", str(i))
         time.sleep(2)
         try:
             related_keywords = related_topics(i)
-            print("Returned related keywords type is: ",type(related_keywords), " Stringified is:", str(related_keywords))
             children_kw_list.append(related_keywords)
-        except Exception:
-            print("!!! EXCEPTION BRUV")
+        except Exception as e:
+            print(str(e))
             
     #Concatenate all keywords into a single dataframe before posting
     print("Running list concatenator...\n\n")

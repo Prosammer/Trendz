@@ -2,6 +2,7 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - init: echo "Looking good today bb"
-    command: ngrok authtoken $ngrokAuth
-  - command: ngrok tcp 3306
+  - command: echo "You're the man now dog"
+    name: Hey buddy
+  - command: ngrok tcp 3306 && ngrok authtoken $ngrokAuth
+    name: ngrok connection
