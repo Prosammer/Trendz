@@ -2,9 +2,10 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - init: 'echo "Looking good today bb"'
-    command: 'ngrok authtoken "$ngrokAuth'
-    command: 'ngrok tcp 3306'
+  - init: npm install
+  command: npm i -g ngrok
+  command: ngrok authtoken "$ngrokAuth"
+  command: ngrok tcp 3306
 
 ports:
   - port: 3306
