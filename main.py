@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, exc
 
 ## TODO: Need to find fix so that I can find 5 related terms at a time (fewer requests)
 ## TODO: Focus on specific categories for more actionable insights?
-
+## TODO: Should look into  "['link' 'value'] not found in axis" error during related topics lookup
 
 # Connect to the database
 
