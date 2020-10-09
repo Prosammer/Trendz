@@ -7,6 +7,7 @@ from sqlalchemy import create_engine, exc
 
 ## TODO: Need to find fix so that I can find 5 related terms at a time (fewer requests)
 ## TODO: Focus on specific categories for more actionable insights?
+## TODO: Decide if I want to keep the GEO for both functions as Canada
 ## TODO: Should look into  "['link' 'value'] not found in axis" error during related topics lookup
 
 
