@@ -7,6 +7,14 @@ from sqlalchemy import create_engine, exc
 
 ## TODO: Need to find fix so that I can find 5 related terms at a time (fewer requests)
 ## TODO: Focus on specific categories for more actionable insights?
+## TODO: Decide if I want to keep the GEO for both functions as Canada
+## TODO: Should look into  "['link' 'value'] not found in axis" error during related topics lookup
+
+
+# Only needs to run once - all requests use this session
+# Timezone is 240 (could be -240 as well?)
+pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
+
 
 
 # Connect to the database
@@ -37,20 +45,15 @@ def df_cleaner(df):
         print(abs(preclean_len-cleaned_len)," duplicate records were dropped.")
     return df
 
-
-def find_interest():
-    # if there are unchecked keywords in masterkeyword DF:
-        #search for each keyword individually for the last year
-        # Add interest numbers to master_interest_df
-    print("Commencing interest_over_time search...")
-    interest_over_time_df = pytrends.interest_over_time()
-    print(interest_over_time_df.head())
-
 def df_list_concatenator(dflist):
     df = pd.concat(dflist)
     cleanedKeywords = df_cleaner(df)
     return cleanedKeywords
     
+
+
+
+
 
 def related_topics(current_KW):
     # Note: Max number of queries is 5. Payload only needed for interest_over_time(), interest_by_region() & related_queries()
@@ -70,18 +73,18 @@ def related_topics(current_KW):
         print("This is the exception:\n\n\n", str(e))
 
 
-
 def retrieve_childless_keywords(num_of_keywords):
     with connection.cursor() as cursor: 
             # Read a single record
             sqlselect = "SELECT topic_title FROM keywords WHERE checked IS NOT TRUE ORDER BY 'id' DESC LIMIT %d;" % num_of_keywords
             sqlupdate = "UPDATE keywords SET checked = TRUE WHERE checked IS NOT TRUE ORDER BY 'id' DESC LIMIT %d;" % num_of_keywords
             cursor.execute(sqlselect)
-            result = cursor.fetchall()
             # Returns a list of key:value dicts with 'topic_title':keyword
+            listofdicts = cursor.fetchall()
+            resultlist = [f['topic_title'] for f in listofdicts]
             cursor.execute(sqlupdate)
             connection.commit()
-            return result
+            return resultlist
             
 
 
@@ -99,9 +102,7 @@ def submitnewkeywords(df):
 
 
 
-# Only needs to run once - all requests use this session
-# Timezone is 240 (could be -240 as well?)
-pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
+
 
 # Set desired number of cycles (for easy testing)
 numofcycles = 100
@@ -109,9 +110,8 @@ numofcycles = 100
 if __name__ =='__main__':
     
     print("Number of Cycles to run: ", str(numofcycles))
-    #Find numofcycles childless keywords in database - returns a list of key:value dicts
-    messy_childless_keywords = retrieve_childless_keywords(numofcycles)
-    childless_keywords_list = [f['topic_title'] for f in messy_childless_keywords]
+    #Find numofcycles childless keywords in database
+    childless_keywords_list = retrieve_childless_keywords(numofcycles)
     children_kw_list =[]
     
     #Find children keywords for all childless keywords
