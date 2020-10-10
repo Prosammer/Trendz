@@ -32,21 +32,19 @@ engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}"
 pw="***REMOVED***",
 db="trends"))
 
-def retrieve_keyword():
-    with connection.cursor() as cursor: 
-            # Read a single record
-            sqlselect = "SELECT topic_title FROM pandas_temp WHERE interest IS NULL ORDER BY 'id' DESC LIMIT 1;"
-            cursor.execute(sqlselect)
-            # Returns a list of key:value dicts with 'topic_title':keyword
-            listofdicts = cursor.fetchall()
-            # Turns list of dict into a single-item list
-            resultlist = [f['topic_title'] for f in listofdicts]
-            connection.commit()
-            return resultlist
+def retrieve_keyword(cursor):
+    # Read a single record
+    sqlselect = "SELECT topic_title FROM keywords WHERE interest IS NULL ORDER BY 'id' DESC LIMIT 1;"
+    cursor.execute(sqlselect)
+    # Returns a list of key:value dicts with 'topic_title':keyword
+    listofdicts = cursor.fetchall()
+    # Turns list of dict into a single-item list
+    resultlist = [f['topic_title'] for f in listofdicts]
+    return resultlist
 
 
-def find_interest():
-    singlekeywordlist = retrieve_keyword()
+def find_interest(cursor):
+    singlekeywordlist = retrieve_keyword(cursor)
     keyword = str(singlekeywordlist[0])
     print("Keyword type is: ",type(keyword), "Keyword is: ", keyword)
 
@@ -57,17 +55,19 @@ def find_interest():
     #Don't care about the isPartial column - dropping it
     df = interest_over_time_df.drop(columns=['isPartial'])
     print(df.tail())
+    time.sleep(10)
     keywordattr = getattr(df, keyword)
 
     interest_dict = dict(zip(df.index, keywordattr))
 
-    interest_data_insert = "UPDATE pandas_temp SET interest=\"%s\" WHERE topic_title = \"%s\"" % (interest_dict,keyword)
-    with connection.cursor() as cursor: 
-        cursor.execute(interest_data_insert)
-        print("Execute finished!")
-        connection.commit()
-        connection.close()
+    interest_data_insert = "UPDATE keywords SET interest=\"%s\" WHERE topic_title = \"%s\"" % (interest_dict,keyword)
+    cursor.execute(interest_data_insert)
+    print("Execute finished!")
+
 
 if __name__ =='__main__':
     print("Number of Cycles to run: ", str(numofcycles))
-    find_interest()
+    with connection.cursor() as cursor: 
+        find_interest(cursor)
+        connection.commit()
+        connection.close()
