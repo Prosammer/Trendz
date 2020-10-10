@@ -1,0 +1,6 @@
+pandas
+plotly-express
+pymysql
+sqlalchemy
+# pytrends
+git+https://github.com/jackedison/pytrends.git@add-daily-data-method

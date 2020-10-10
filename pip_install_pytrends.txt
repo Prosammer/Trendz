@@ -1,3 +1,0 @@
-pip install git+https://github.com/jackedison/pytrends.git@add-daily-data-method
-
-
