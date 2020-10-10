@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, exc
 
 
 # Set desired number of cycles (for easy testing)
-numofcycles = 10
+numofcycles = 100
 
 
 # Only needs to run once - all requests use this session
@@ -57,13 +57,8 @@ def find_interest(cursor):
     df = historical_df.drop(columns=['isPartial'])
     # Dropping HH:MM:SS from the index's datetime format
     df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
-    print(type(df.index))
-    print("String: ",str(df.index))
-    print(df.index)
-    print(df.tail())
     keywordattr = getattr(df, keyword)
     interest_dict = dict(zip(df.index, keywordattr))
-
     interest_data_insert = "UPDATE keywords SET interest=\"%s\" WHERE topic_title = \"%s\"" % (interest_dict,keyword)
     cursor.execute(interest_data_insert)
     print("Execute finished!")
@@ -71,7 +66,9 @@ def find_interest(cursor):
 
 if __name__ =='__main__':
     print("Number of Cycles to run: ", str(numofcycles))
-    with connection.cursor() as cursor: 
-        find_interest(cursor)
-        connection.commit()
-        connection.close()
+    for i in range(numofcycles):
+        with connection.cursor() as cursor: 
+            find_interest(cursor)
+            connection.commit()
+
+    connection.close()
