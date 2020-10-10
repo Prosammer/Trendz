@@ -55,6 +55,11 @@ def find_interest(cursor):
 
     #Don't care about the isPartial column - dropping it
     df = historical_df.drop(columns=['isPartial'])
+    # Dropping HH:MM:SS from the index's datetime format
+    df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
+    print(type(df.index))
+    print("String: ",str(df.index))
+    print(df.index)
     print(df.tail())
     keywordattr = getattr(df, keyword)
     interest_dict = dict(zip(df.index, keywordattr))
