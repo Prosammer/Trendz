@@ -51,17 +51,22 @@ def find_interest(cursor):
     time.sleep(2)
     #pytrends.build_payload(kw_list=singlekeywordlist, timeframe='all', geo='CA')
     print("Commencing get_historical_interest search...")
-    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
+    try:
+        historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
 
-    #Don't care about the isPartial column - dropping it
-    df = historical_df.drop(columns=['isPartial'])
-    # Dropping HH:MM:SS from the index's datetime format
-    df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
-    keywordattr = getattr(df, keyword)
-    interest_dict = dict(zip(df.index, keywordattr))
-    interest_data_insert = "UPDATE keywords SET interest=\"%s\" WHERE topic_title = \"%s\"" % (interest_dict,keyword)
-    cursor.execute(interest_data_insert)
-    print("Execute finished!")
+        #Don't care about the isPartial column - dropping it
+        df = historical_df.drop(columns=['isPartial'])
+        # Dropping HH:MM:SS from the index's datetime format
+        df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
+        keywordattr = getattr(df, keyword)
+        interest_dict = dict(zip(df.index, keywordattr))
+        interest_data_insert = "UPDATE keywords SET interest=\"%s\" WHERE topic_title = \"%s\"" % (interest_dict,keyword)
+        cursor.execute(interest_data_insert)
+        print("Execute finished!")
+    except Exception as e:
+        connection.close()
+        print(str(e))
+
 
 
 if __name__ =='__main__':
