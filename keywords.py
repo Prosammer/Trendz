@@ -16,7 +16,6 @@ from sqlalchemy import create_engine, exc
 pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
 
 
-
 # Connect to the database
 
 connection = pymysql.connect(host='localhost',
@@ -49,9 +48,6 @@ def df_list_concatenator(dflist):
     df = pd.concat(dflist)
     cleanedKeywords = df_cleaner(df)
     return cleanedKeywords
-    
-
-
 
 
 
