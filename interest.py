@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, exc
 
 
 # Set desired number of cycles (for easy testing)
-numofcycles = 100
+numofcycles = 2
 
 
 # Only needs to run once - all requests use this session
@@ -44,7 +44,8 @@ def retrieve_keyword(cursor):
 
 
 def find_interest(cursor):
-    singlekeywordlist = retrieve_keyword(cursor)
+    #singlekeywordlist = retrieve_keyword(cursor)
+    singlekeywordlist = ['GoPro HERO']
     keyword = str(singlekeywordlist[0])
     print("Keyword is: ", keyword)
 
@@ -57,10 +58,12 @@ def find_interest(cursor):
         #Don't care about the isPartial column - dropping it
         df = historical_df.drop(columns=['isPartial'])
         # Dropping HH:MM:SS from the index's datetime format
-        df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
-        keywordattr = getattr(df, keyword)
-        interest_dict = dict(zip(df.index, keywordattr))
-        interest_data_insert = "UPDATE keywords SET interest=\"%s\" WHERE topic_title = \"%s\"" % (interest_dict,keyword)
+        df.reset_index(inplace=True)
+        print(df.head())
+        print(df.dtypes)
+        csv = df.to_csv()
+        #df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
+        interest_data_insert = "UPDATE keywords SET interest=\"%s\" WHERE topic_title = \"%s\"" % (csv,keyword)
         cursor.execute(interest_data_insert)
         print("Execute finished!")
     except Exception as e:
