@@ -2,7 +2,8 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - command: echo "You're the man now dog"
+  - init: pip install -r requirements.txt
+    command: echo "You're the man now dog"
     name: Hey buddy
   - command: ngrok authtoken $ngrokAuth && ngrok tcp 3306
     name: ngrok connection
