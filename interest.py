@@ -44,13 +44,11 @@ def retrieve_keyword(cursor):
 
 
 def find_interest(cursor):
-    #singlekeywordlist = retrieve_keyword(cursor)
-    singlekeywordlist = ['GoPro HERO']
+    singlekeywordlist = retrieve_keyword(cursor)
     keyword = str(singlekeywordlist[0])
     print("Keyword is: ", keyword)
 
     time.sleep(2)
-    #pytrends.build_payload(kw_list=singlekeywordlist, timeframe='all', geo='CA')
     print("Commencing get_historical_interest search...")
     try:
         historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
