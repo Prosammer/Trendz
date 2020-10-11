@@ -3,7 +3,6 @@ import os, requests, time, operator
 from pytrends.request import TrendReq
 import plotly.express as px
 import pymysql.cursors
-from sqlalchemy import create_engine, exc
 
 
 # Set desired number of cycles (for easy testing)
@@ -18,19 +17,15 @@ pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
 
 # Connect to the database
 
-connection = pymysql.connect(host='localhost',
-user='root',
+connection = pymysql.connect(host='db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com',
+user='***REMOVED***',
 password='***REMOVED***',
+port=25060,
 db='trends',
 charset='utf8mb4',
 cursorclass=pymysql.cursors.DictCursor)
 
 
-# create sqlalchemy engine
-engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}"
-.format(user="root",
-pw="***REMOVED***",
-db="trends"))
 
 def retrieve_keyword(cursor):
     # Read a single record
@@ -50,9 +45,14 @@ def find_interest(cursor):
 
     time.sleep(2)
     print("Commencing get_historical_interest search...")
-    try:
-        historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
+    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
 
+    sql_query = None
+
+    if historical_df.empty:
+        print("Not enough data for this keyword, deleting from table...")
+        sql_query = "DELETE from keywords WHERE topic_title = \"%s\"" % (keyword)
+    else:
         #Don't care about the isPartial column - dropping it
         df = historical_df.drop(columns=['isPartial'])
         # Dropping HH:MM:SS from the index's datetime format
@@ -61,20 +61,23 @@ def find_interest(cursor):
         print(df.dtypes)
         csv = df.to_csv()
         #df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
-        interest_data_insert = "UPDATE keywords SET interest=\"%s\" WHERE topic_title = \"%s\"" % (csv,keyword)
-        cursor.execute(interest_data_insert)
-        print("Execute finished!")
-    except Exception as e:
-        connection.close()
-        print(str(e))
+        sql_query = "UPDATE keywords SET interest=\"%s\" WHERE topic_title = \"%s\"" % (csv,keyword)
+
+    cursor.execute(sql_query)
+    print("Execute finished!")
+    
+        
 
 
 
 if __name__ =='__main__':
     print("Number of Cycles to run: ", str(numofcycles))
-    for i in range(numofcycles):
-        with connection.cursor() as cursor: 
-            find_interest(cursor)
-            connection.commit()
-
-    connection.close()
+    with connection.cursor() as cursor: 
+        try:
+            for i in range(numofcycles):
+                find_interest(cursor)
+                connection.commit()
+                connection.close()
+        except Exception as e:
+                print(str(e))
+                connection.close()
