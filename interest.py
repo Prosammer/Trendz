@@ -47,23 +47,24 @@ def find_interest(cursor):
     print("Commencing get_historical_interest search...")
     historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
 
-    sql_query = None
 
     if historical_df.empty:
         print("Not enough data for this keyword, deleting from table...")
         sql_query = "DELETE from keywords WHERE topic_title = \"%s\"" % (keyword)
+        cursor.execute(sql_query)
     else:
         #Don't care about the isPartial column - dropping it
         df = historical_df.drop(columns=['isPartial'])
+        df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
         # Dropping HH:MM:SS from the index's datetime format
-        df.reset_index(inplace=True)
+        #df.reset_index(inplace=True)
         print(df.head())
         print(df.dtypes)
         csv = df.to_csv()
-        #df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
-        sql_query = "UPDATE keywords SET interest=\"%s\" WHERE topic_title = \"%s\"" % (csv,keyword)
+        
+        sql_query = "UPDATE keywords SET interest='%s' WHERE topic_title = '%s'" %(csv,keyword)
 
-    cursor.execute(sql_query)
+        cursor.execute(sql_query)
     print("Execute finished!")
     
         
@@ -80,4 +81,3 @@ if __name__ =='__main__':
                 connection.close()
         except Exception as e:
                 print(str(e))
-                connection.close()
