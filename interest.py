@@ -74,10 +74,7 @@ def find_interest(cursor):
 if __name__ =='__main__':
     print("Number of Cycles to run: ", str(numofcycles))
     with connection.cursor() as cursor: 
-        try:
-            for i in range(numofcycles):
+        for i in range(numofcycles):
                 find_interest(cursor)
                 connection.commit()
                 connection.close()
-        except Exception as e:
-                print(str(e))
