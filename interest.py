@@ -43,14 +43,15 @@ def find_interest(cursor):
     keyword = str(singlekeywordlist[0])
     print("Keyword is: ", keyword)
 
-    time.sleep(2)
+    time.sleep(.5)
     print("Commencing get_historical_interest search...")
     historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
 
 
     if historical_df.empty:
         print("Not enough data for keyword: ",keyword," deleting from table...")
-        sql_query = "DELETE from keywords WHERE topic_title = \"%s\"" % (keyword)
+        print(type(keyword))
+        sql_query = "DELETE from keywords WHERE topic_title = '{}'".format(keyword)
         cursor.execute(sql_query)
     else:
         #Don't care about the isPartial column - dropping it
