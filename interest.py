@@ -48,7 +48,7 @@ def find_interest(cursor):
     print("Keyword is: ", keyword)
     time.sleep(.5)
     print("Commencing get_historical_interest search...")
-    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
+    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=3)
 
 
     if historical_df.empty:
