@@ -49,7 +49,7 @@ def find_interest(cursor):
 
 
     if historical_df.empty:
-        print("Not enough data for this keyword, deleting from table...")
+        print("Not enough data for keyword: ",keyword," deleting from table...")
         sql_query = "DELETE from keywords WHERE topic_title = \"%s\"" % (keyword)
         cursor.execute(sql_query)
     else:
@@ -62,9 +62,11 @@ def find_interest(cursor):
         print(df.dtypes)
         csv = df.to_csv()
         
-        sql_query = "UPDATE keywords SET interest='%s' WHERE topic_title = '%s'" %(csv,keyword)
-
+        sql_query = "UPDATE keywords SET interest='{}' WHERE topic_title = '{}'".format(csv, keyword)
         cursor.execute(sql_query)
+        connection.commit()
+
+
     print("Execute finished!")
     
         
@@ -76,5 +78,5 @@ if __name__ =='__main__':
     with connection.cursor() as cursor: 
         for i in range(numofcycles):
                 find_interest(cursor)
-                connection.commit()
-                connection.close()
+                
+        connection.close()
