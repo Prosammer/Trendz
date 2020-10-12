@@ -8,10 +8,13 @@ import pymysql.cursors
 # Set desired number of cycles (for easy testing)
 numofcycles = 100
 
+# Trying BlazingSEO shared proxies
+proxylist = ['104.168.51.141:3128','192.186.134.157:3128','192.3.214.40:3128','104.144.220.10:3128','104.144.28.167:3128','172.245.181.226:3128','192.210.185.193:3128','23.236.232.162:3128','23.254.68.49:3128','23.94.176.161:3128','69.4.90.17:3128','107.172.94.128:3128','138.128.84.159:3128','192.186.161.228:3128','192.241.64.90:3128','192.241.80.170:3128','198.12.80.148:3128','198.23.217.80:3128','23.250.94.234:3128','45.72.0.245:3128']
+
 
 # Only needs to run once - all requests use this session
 # Timezone is 240 (could be -240 as well?)
-pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2)
+pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2, requests_args={'auth':('1a1e6833ae','pQT96hmn')}, proxies=proxylist)
 
 
 
@@ -24,6 +27,7 @@ port=25060,
 db='trends',
 charset='utf8mb4',
 cursorclass=pymysql.cursors.DictCursor)
+
 
 
 
@@ -42,7 +46,6 @@ def find_interest(cursor):
     singlekeywordlist = retrieve_keyword(cursor)
     keyword = str(singlekeywordlist[0])
     print("Keyword is: ", keyword)
-
     time.sleep(.5)
     print("Commencing get_historical_interest search...")
     historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
@@ -50,7 +53,8 @@ def find_interest(cursor):
 
     if historical_df.empty:
         print("Not enough data for keyword: ",keyword," deleting from table...")
-        print(type(keyword))
+        print("historical_df type: ",type(historical_df))
+        print(historical_df.head())
         sql_query = "DELETE from keywords WHERE topic_title = '{}'".format(keyword)
         cursor.execute(sql_query)
     else:
