@@ -6,7 +6,7 @@ import pymysql.cursors
 
 
 # Set desired number of cycles (for easy testing)
-numofcycles = 2
+numofcycles = 100
 
 
 # Only needs to run once - all requests use this session
