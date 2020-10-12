@@ -11,7 +11,7 @@ numofcycles = 100
 
 # Only needs to run once - all requests use this session
 # Timezone is 240 (could be -240 as well?)
-pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
+pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2)
 
 
 
@@ -67,12 +67,8 @@ def find_interest(cursor):
         cursor.execute(sql_query)
         connection.commit()
 
-
     print("Execute finished!")
     
-        
-
-
 
 if __name__ =='__main__':
     print("Number of Cycles to run: ", str(numofcycles))
