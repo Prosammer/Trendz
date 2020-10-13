@@ -43,14 +43,13 @@ def find_interest(cursor):
     keyword = str(singlekeywordlist[0])
     logging.info("Keyword is: ", keyword)
 
-    time.sleep(.5)
     logging.info("Commencing get_historical_interest search...")
-    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
+    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=2)
 
 
     if historical_df.empty:
+        logging.info("Keyword type: ",type(keyword))
         logging.info("Not enough data for keyword: ",keyword," deleting from table...")
-        logging.info(type(keyword))
         sql_query = "DELETE from keywords WHERE topic_title = '{}'".format(keyword)
         cursor.execute(sql_query)
     else:
