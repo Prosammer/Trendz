@@ -6,7 +6,7 @@ import pymysql.cursors
 
 
 # Set desired number of cycles (for easy testing)
-numofcycles = 1
+numofcycles = 800
 
 
 # Only needs to run once - all requests use this session
@@ -45,7 +45,7 @@ def find_interest(cursor):
     logging.info(f"Keyword is: {keyword}")
 
     logging.info("Commencing get_historical_interest search...")
-    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=2)
+    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=60)
 
 
     if historical_df.empty:
