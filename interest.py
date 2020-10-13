@@ -1,5 +1,5 @@
 import pandas as pd
-import os, requests, time, operator
+import os, requests, time, operator,logging
 from pytrends.request import TrendReq
 import plotly.express as px
 import pymysql.cursors
@@ -41,16 +41,16 @@ def retrieve_keyword(cursor):
 def find_interest(cursor):
     singlekeywordlist = retrieve_keyword(cursor)
     keyword = str(singlekeywordlist[0])
-    print("Keyword is: ", keyword)
+    logging.info("Keyword is: ", keyword)
 
     time.sleep(.5)
-    print("Commencing get_historical_interest search...")
+    logging.info("Commencing get_historical_interest search...")
     historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=0)
 
 
     if historical_df.empty:
-        print("Not enough data for keyword: ",keyword," deleting from table...")
-        print(type(keyword))
+        logging.info("Not enough data for keyword: ",keyword," deleting from table...")
+        logging.info(type(keyword))
         sql_query = "DELETE from keywords WHERE topic_title = '{}'".format(keyword)
         cursor.execute(sql_query)
     else:
@@ -59,19 +59,22 @@ def find_interest(cursor):
         df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
         # Dropping HH:MM:SS from the index's datetime format
         #df.reset_index(inplace=True)
-        print(df.head())
-        print(df.dtypes)
+        logging.info(df.head())
+        logging.info(df.dtypes)
         csv = df.to_csv()
         
         sql_query = "UPDATE keywords SET interest='{}' WHERE topic_title = '{}'".format(csv, keyword)
         cursor.execute(sql_query)
         connection.commit()
 
-    print("Execute finished!")
+    logging.info("Execute finished!")
     
 
 if __name__ =='__main__':
-    print("Number of Cycles to run: ", str(numofcycles))
+    logging.basicConfig(level=logging.INFO, filename="logfile", filemode="a+",
+                        format="%(asctime)-15s %(levelname)-8s %(message)s")
+    logging.info("Greetings, Pleb!")
+    logging.info("Number of Cycles to run: ", str(numofcycles))
     with connection.cursor() as cursor: 
         for i in range(numofcycles):
                 find_interest(cursor)
