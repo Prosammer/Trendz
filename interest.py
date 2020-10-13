@@ -17,7 +17,7 @@ pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2)
 
 # Connect to the database
 
-connection = pymysql.connect(host='db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com',
+connection = pymysql.connect(host='private-db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com',
 user='***REMOVED***',
 password='***REMOVED***',
 port=25060,
