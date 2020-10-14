@@ -60,7 +60,6 @@ def find_interest(cursor):
         #Removing the extra 0's from datetime
         df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
         logging.info(f"df.head is: {df.head()}")
-        logging.info(f"Df.dtypes is: {df.dtypes()}")
         csv = df.to_csv()
         
         sql_query = "UPDATE keywords SET interest='{}' WHERE topic_title = '{}'".format(csv, keyword)
@@ -76,7 +75,7 @@ def find_interest(cursor):
 
 if __name__ =='__main__':
     logging.root.handlers = []
-    logging.basicConfig(level=logging.DEBUG,handlers=[
+    logging.basicConfig(level=logging.INFO,handlers=[
         logging.FileHandler("debug.log"),
         logging.StreamHandler(sys.stdout)])
 
