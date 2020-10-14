@@ -5,6 +5,9 @@ import plotly.express as px
 import pymysql.cursors
 
 
+# TODO: Reduce to certain categories (in keywords.py)
+# TODO: Figure out why df csv isnt updating into mysql (bc I can pull keywords from sql just fine?)
+
 # Set desired number of cycles (for easy testing)
 numofcycles = 10
 
