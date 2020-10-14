@@ -13,7 +13,7 @@ proxylist = ['https://104.168.51.141:3128','https://192.186.134.157:3128','https
 
 # Only needs to run once - all requests use this session
 # Timezone is 240 (could be -240 as well?)
-pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2)
+pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,proxies=proxylist)
 
 
 
