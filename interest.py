@@ -8,6 +8,8 @@ import pymysql.cursors
 # Set desired number of cycles (for easy testing)
 numofcycles = 800
 
+proxylist = ['https://104.168.51.141:3128','https://192.186.134.157:3128','https://192.3.214.40:3128','https://104.144.220.10:3128','https://104.144.28.167:3128','https://172.245.181.226:3128','https://192.210.185.193:3128','https://23.236.232.162:3128','https://23.254.68.49:3128','https://23.94.176.161:3128','https://69.4.90.17:3128','https://107.172.94.128:3128','https://138.128.84.159:3128','https://192.186.161.228:3128','https://192.241.64.90:3128','https://192.241.80.170:3128','https://198.12.80.148:3128','https://198.23.217.80:3128','https://23.250.94.234:3128','https://45.72.0.245:3128']
+
 
 # Only needs to run once - all requests use this session
 # Timezone is 240 (could be -240 as well?)
@@ -39,13 +41,12 @@ def retrieve_keyword(cursor):
 
 
 def find_interest(cursor):
-    #singlekeywordlist = retrieve_keyword(cursor)
-    singlekeywordlist = ["Macbook"]
+    singlekeywordlist = retrieve_keyword(cursor)
     keyword = str(singlekeywordlist[0])
     logging.info(f"Keyword is: {keyword}")
 
     logging.info("Commencing get_historical_interest search...")
-    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=60)
+    historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=3)
 
 
     if historical_df.empty:
@@ -68,6 +69,10 @@ def find_interest(cursor):
 
     logging.info("Execute finished!")
     
+    
+
+#requests_log = logging.getLogger("requests.packages.urllib3")
+#requests_log.propagate = True
 
 if __name__ =='__main__':
     logging.root.handlers = []
