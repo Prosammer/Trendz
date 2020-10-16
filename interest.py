@@ -22,7 +22,8 @@ proxylist = ['https://104.168.51.141:3128','https://192.186.134.157:3128','https
 
 
 # Sets which address to use, and if proxies should be used, based on CLI input
-def location(location):
+def setloc(location):
+    location=location
     logging.info(f"Your chosen location is: {location}")
     if location == "digitalocean":
         host='private-db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com'
@@ -96,7 +97,7 @@ if __name__ =='__main__':
     logging.info("Greetings, Pleb!")
     logging.info(f"Number of Cycles to run: {numofcycles}")
     
-    connection, pytrends = fire.Fire(location)
+    connection, pytrends = fire.Fire(setloc)
     print(f"Connection type: {type(connection)}, connection string: {str(connection)}")
     print(f"pytrends type: {type(pytrends)}, pytrends string: {str(pytrends)}")
     time.sleep(3)
