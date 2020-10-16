@@ -1,12 +1,17 @@
 import pandas as pd
-import os, requests, time, operator
+import os,sys,requests,time,operator,logging
 from pytrends.request import TrendReq
 import plotly.express as px
 import pymysql.cursors
 
 
+# TODO: Reduce to certain categories (in keywords.py)
+# TODO: Figure out why df csv isnt updating into mysql (bc I can pull keywords from sql just fine?)
+
 # Set desired number of cycles (for easy testing)
-numofcycles = 100
+numofcycles = 10
+
+proxylist = ['https://104.168.51.141:3128','https://192.186.134.157:3128','https://192.3.214.40:3128','https://104.144.220.10:3128','https://104.144.28.167:3128','https://172.245.181.226:3128','https://192.210.185.193:3128','https://23.236.232.162:3128','https://23.254.68.49:3128','https://23.94.176.161:3128','https://69.4.90.17:3128','https://107.172.94.128:3128','https://138.128.84.159:3128','https://192.186.161.228:3128','https://192.241.64.90:3128','https://192.241.80.170:3128','https://198.12.80.148:3128','https://198.23.217.80:3128','https://23.250.94.234:3128','https://45.72.0.245:3128']
 
 # Trying BlazingSEO shared proxies
 proxylist = ['https://104.168.51.141:4444','https://192.186.134.157:4444','https://192.3.214.40:4444','https://104.144.220.10:4444','https://104.144.28.167:4444','https://172.245.181.226:4444','https://192.210.185.193:4444','https://23.236.232.162:4444','https://23.254.68.49:4444','https://23.94.176.161:4444','https://69.4.90.17:4444','https://107.172.94.128:4444','https://138.128.84.159:4444','https://192.186.161.228:4444','https://192.241.64.90:4444','https://192.241.80.170:4444','https://198.12.80.148:4444','https://198.23.217.80:4444','https://23.250.94.234:4444','https://45.72.0.245:4444']
@@ -14,13 +19,14 @@ proxylist = ['https://104.168.51.141:4444','https://192.186.134.157:4444','https
 
 # Only needs to run once - all requests use this session
 # Timezone is 240 (could be -240 as well?)
-pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2, proxies=proxylist)
+
+pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,proxies=proxylist)
 
 
 
 # Connect to the database
 
-connection = pymysql.connect(host='db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com',
+connection = pymysql.connect(host='private-db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com',
 user='***REMOVED***',
 password='***REMOVED***',
 port=25060,
@@ -45,37 +51,48 @@ def retrieve_keyword(cursor):
 def find_interest(cursor):
     singlekeywordlist = retrieve_keyword(cursor)
     keyword = str(singlekeywordlist[0])
-    print("Keyword is: ", keyword)
-    time.sleep(.5)
-    print("Commencing get_historical_interest search...")
+
+    logging.info(f"Keyword is: {keyword}")
+
+    logging.info("Commencing get_historical_interest search...")
+
     historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1, day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=3)
 
 
     if historical_df.empty:
-        print("Not enough data for keyword: ",keyword," deleting from table...")
-        print("historical_df type: ",type(historical_df))
-        print(historical_df.head())
+        logging.info(f"Keyword type: {type(keyword)}")
+        logging.info(f"Not enough data for keyword: {keyword} deleting from table...")
+
         sql_query = "DELETE from keywords WHERE topic_title = '{}'".format(keyword)
-        cursor.execute(sql_query)
+        #cursor.execute(sql_query)
     else:
         #Don't care about the isPartial column - dropping it
         df = historical_df.drop(columns=['isPartial'])
+        #Removing the extra 0's from datetime
         df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
-        # Dropping HH:MM:SS from the index's datetime format
-        #df.reset_index(inplace=True)
-        print(df.head())
-        print(df.dtypes)
+        logging.info(f"df.head is: {df.head()}")
         csv = df.to_csv()
         
         sql_query = "UPDATE keywords SET interest='{}' WHERE topic_title = '{}'".format(csv, keyword)
-        cursor.execute(sql_query)
-        connection.commit()
+       # cursor.execute(sql_query)
+        #connection.commit()
 
-    print("Execute finished!")
+    logging.info("Execute finished!")
+    
     
 
+#requests_log = logging.getLogger("requests.packages.urllib3")
+#requests_log.propagate = True
+
 if __name__ =='__main__':
-    print("Number of Cycles to run: ", str(numofcycles))
+    logging.root.handlers = []
+    logging.basicConfig(level=logging.INFO,handlers=[
+        logging.FileHandler("debug.log"),
+        logging.StreamHandler(sys.stdout)])
+
+    logging.info("Greetings, Pleb!")
+    time.sleep(2)
+    logging.info(f"Number of Cycles to run: {numofcycles}")
     with connection.cursor() as cursor: 
         for i in range(numofcycles):
                 find_interest(cursor)
