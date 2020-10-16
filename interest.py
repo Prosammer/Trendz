@@ -93,8 +93,8 @@ def find_interest(cursor):
 
 if __name__ =='__main__':
     logging.root.handlers = []
-    logging.basicConfig(level=logging.INFO,handlers=[
-        logging.FileHandler("debug.log"),
+    logging.basicConfig(level=logging.INFO, handlers=[
+        logging.FileHandler("debug.log", mode='w',level=logging.DEBUG),
         logging.StreamHandler(sys.stdout)])
 
     logging.info("Greetings, Pleb!")
