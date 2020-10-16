@@ -3,18 +3,20 @@ import os,sys,requests,time,operator,logging
 from pytrends.request import TrendReq
 import plotly.express as px
 import pymysql.cursors
+import fire
 
 
 # TODO: Reduce to certain categories (in keywords.py)
 # TODO: Figure out why df csv isnt updating into mysql (bc I can pull keywords from sql just fine?)
+# TODO: Use proxylist when CLI arg set to local. Don't use when set to remote/
 
 # Set desired number of cycles (for easy testing)
 numofcycles = 10
 
-proxylist = ['https://104.168.51.141:3128','https://192.186.134.157:3128','https://192.3.214.40:3128','https://104.144.220.10:3128','https://104.144.28.167:3128','https://172.245.181.226:3128','https://192.210.185.193:3128','https://23.236.232.162:3128','https://23.254.68.49:3128','https://23.94.176.161:3128','https://69.4.90.17:3128','https://107.172.94.128:3128','https://138.128.84.159:3128','https://192.186.161.228:3128','https://192.241.64.90:3128','https://192.241.80.170:3128','https://198.12.80.148:3128','https://198.23.217.80:3128','https://23.250.94.234:3128','https://45.72.0.245:3128']
 
-# Trying BlazingSEO shared proxies
-proxylist = ['https://104.168.51.141:4444','https://192.186.134.157:4444','https://192.3.214.40:4444','https://104.144.220.10:4444','https://104.144.28.167:4444','https://172.245.181.226:4444','https://192.210.185.193:4444','https://23.236.232.162:4444','https://23.254.68.49:4444','https://23.94.176.161:4444','https://69.4.90.17:4444','https://107.172.94.128:4444','https://138.128.84.159:4444','https://192.186.161.228:4444','https://192.241.64.90:4444','https://192.241.80.170:4444','https://198.12.80.148:4444','https://198.23.217.80:4444','https://23.250.94.234:4444','https://45.72.0.245:4444']
+#BlazingSEO proxy list - uses port 4444 for username/password based auth, and 3128 for IP based auth.
+
+proxylist = ['https://104.168.51.141:3128','https://192.186.134.157:3128','https://192.3.214.40:3128','https://104.144.220.10:3128','https://104.144.28.167:3128','https://172.245.181.226:3128','https://192.210.185.193:3128','https://23.236.232.162:3128','https://23.254.68.49:3128','https://23.94.176.161:3128','https://69.4.90.17:3128','https://107.172.94.128:3128','https://138.128.84.159:3128','https://192.186.161.228:3128','https://192.241.64.90:3128','https://192.241.80.170:3128','https://198.12.80.148:3128','https://198.23.217.80:3128','https://23.250.94.234:3128','https://45.72.0.245:3128']
 
 
 # Only needs to run once - all requests use this session
@@ -26,16 +28,26 @@ pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,proxies=pro
 
 # Connect to the database
 
-connection = pymysql.connect(host='private-db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com',
-user='***REMOVED***',
-password='***REMOVED***',
-port=25060,
-db='trends',
-charset='utf8mb4',
-cursorclass=pymysql.cursors.DictCursor)
 
+# Sets which address to use based on CLI input
+def sql_DB_settings(location="world"):
+    host = ""
+    if location == "local":
+        host='private-db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com'
 
+    elif location == "remote":
+        host='db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com'
+    else:
+        raise Exception("Must specify location='remote' or 'local'." )
 
+    connection = pymysql.connect(host=host,
+    user='***REMOVED***',
+    password='***REMOVED***',
+    port=25060,
+    db='trends',
+    charset='utf8mb4',
+    cursorclass=pymysql.cursors.DictCursor)
+    return connection
 
 def retrieve_keyword(cursor):
     # Read a single record
@@ -91,8 +103,9 @@ if __name__ =='__main__':
         logging.StreamHandler(sys.stdout)])
 
     logging.info("Greetings, Pleb!")
-    time.sleep(2)
     logging.info(f"Number of Cycles to run: {numofcycles}")
+    connection = fire.Fire(sql_DB_settings)
+
     with connection.cursor() as cursor: 
         for i in range(numofcycles):
                 find_interest(cursor)
