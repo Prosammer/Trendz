@@ -22,7 +22,7 @@ proxylist = ['https://104.168.51.141:3128','https://192.186.134.157:3128','https
 
 
 # Sets which address to use, and if proxies should be used, based on CLI input
-def location(location="world"):
+def location(location):
     logging.info(f"Your chosen location is: {location}")
     if location == "digitalocean":
         host='private-db-mysql-tor1-72034-do-user-8152651-0.b.db.ondigitalocean.com'
@@ -85,10 +85,7 @@ def find_interest(cursor,pytrends):
 
     logging.info("Execute finished!")
     
-    
 
-#requests_log = logging.getLogger("requests.packages.urllib3")
-#requests_log.propagate = True
 
 if __name__ =='__main__':
     logging.root.handlers = []
@@ -98,7 +95,8 @@ if __name__ =='__main__':
 
     logging.info("Greetings, Pleb!")
     logging.info(f"Number of Cycles to run: {numofcycles}")
-    fire.Fire()
+    fire.Fire(location)
+    print("OK 1 RAN ALREADY BRO")
     connection, pytrends = location()
     with connection.cursor() as cursor: 
         for i in range(numofcycles):
