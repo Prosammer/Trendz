@@ -27,10 +27,10 @@ def sql_DB_settings(location="world"):
     global pytrends
     if location == "local":
         host='private-db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com'
-        pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2)
+        pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,proxies=proxylist)
     elif location == "remote":
         host='db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com'
-        pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,proxies=proxylist)
+        pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2)
     else:
         raise Exception("Must specify location: 'remote' or 'local'." )
 
@@ -94,7 +94,7 @@ def find_interest(cursor):
 if __name__ =='__main__':
     logging.root.handlers = []
     logging.basicConfig(level=logging.INFO, handlers=[
-        logging.FileHandler("debug.log", mode='w',level=logging.DEBUG),
+        logging.FileHandler("debug.log", mode='w'),
         logging.StreamHandler(sys.stdout)])
 
     logging.info("Greetings, Pleb!")
