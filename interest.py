@@ -95,9 +95,11 @@ if __name__ =='__main__':
 
     logging.info("Greetings, Pleb!")
     logging.info(f"Number of Cycles to run: {numofcycles}")
-    fire.Fire(location)
-    print("OK 1 RAN ALREADY BRO")
-    connection, pytrends = location()
+    
+    connection, pytrends = fire.Fire(location)
+    print(f"Connection type: {type(connection)}, connection string: {str(connection)}")
+    print(f"pytrends type: {type(pytrends)}, pytrends string: {str(pytrends)}")
+    time.sleep(3)
     with connection.cursor() as cursor: 
         for i in range(numofcycles):
                 find_interest(cursor,pytrends)
