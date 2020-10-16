@@ -22,10 +22,9 @@ proxylist = ['https://104.168.51.141:3128','https://192.186.134.157:3128','https
 
 
 # Sets which address to use, and if proxies should be used, based on CLI input
-def sql_DB_settings(location="world"):
+def location(location="world"):
     logging.info(f"Your chosen location is: {location}")
-    global pytrends
-    if location == "local":
+    if location == "digitalocean":
         host='private-db-mysql-tor1-72034-do-user-8152651-0.b.db.ondigitalocean.com'
         pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,proxies=proxylist)
     elif location == "remote":
@@ -33,7 +32,7 @@ def sql_DB_settings(location="world"):
         pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2)
     else:
         raise Exception("Must specify location: 'remote' or 'local'." )
-
+    
     connection = pymysql.connect(host=host,
     user='doadmin',
     password='sjmfco80xbdp0rjl',
@@ -42,7 +41,7 @@ def sql_DB_settings(location="world"):
     charset='utf8mb4',
     cursorclass=pymysql.cursors.DictCursor)
 
-    return connection
+    return connection, pytrends
 
 def retrieve_keyword(cursor):
     # Read a single record
@@ -55,7 +54,7 @@ def retrieve_keyword(cursor):
     return resultlist
 
 
-def find_interest(cursor):
+def find_interest(cursor,pytrends):
     singlekeywordlist = retrieve_keyword(cursor)
     keyword = str(singlekeywordlist[0])
 
@@ -77,11 +76,11 @@ def find_interest(cursor):
         df = historical_df.drop(columns=['isPartial'])
         #Removing the extra 0's from datetime
         df.index = pd.to_datetime(df.index, format = '%Y-%m-%d').strftime('%Y-%m-%d')
-        logging.info(f"df.head is: {df.head()}")
+        logging.info(f"df.head is: \n {df.head()}")
         csv = df.to_csv()
         
         sql_query = "UPDATE keywords SET interest='{}' WHERE topic_title = '{}'".format(csv, keyword)
-       # cursor.execute(sql_query)
+       #cursor.execute(sql_query)
         #connection.commit()
 
     logging.info("Execute finished!")
@@ -93,16 +92,16 @@ def find_interest(cursor):
 
 if __name__ =='__main__':
     logging.root.handlers = []
-    logging.basicConfig(level=logging.INFO, handlers=[
+    logging.basicConfig(level=logging.DEBUG, handlers=[
         logging.FileHandler("debug.log", mode='w'),
         logging.StreamHandler(sys.stdout)])
 
     logging.info("Greetings, Pleb!")
     logging.info(f"Number of Cycles to run: {numofcycles}")
-    
-    connection = fire.Fire(sql_DB_settings)
+    fire.Fire()
+    connection, pytrends = location()
     with connection.cursor() as cursor: 
         for i in range(numofcycles):
-                find_interest(cursor)
+                find_interest(cursor,pytrends)
                 
         connection.close()
