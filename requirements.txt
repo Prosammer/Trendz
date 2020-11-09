@@ -3,5 +3,6 @@ plotly-express
 pymysql
 sqlalchemy
 fire
+psycopg2
 # pytrends
 git+https://github.com/jackedison/pytrends.git@add-daily-data-method
