@@ -43,7 +43,7 @@ def setup():
                                   password=password,
                                   host='trends-timescale-db.postgres.database.azure.com',
                                   port=5432,
-                                  sslmode='true')
+                                  sslmode='require')
 
     # create sqlalchemy engine
     engine = create_engine("postgresql+psycopg2://{user}:{pw}@trends-timescale-db.postgres.database.azure.com/{db}"
