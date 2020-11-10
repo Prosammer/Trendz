@@ -1,15 +1,10 @@
-import pandas as pd
-import os
-import sys
-import requests
-import time
-import operator
 import logging
-from pytrends.request import TrendReq
-import plotly.express as px
-import psycopg2
-import fire
+import sys
 
+import pandas as pd
+import psycopg2
+import requests
+from pytrends.request import TrendReq
 
 # TODO: Reduce to certain categories (in keywords.py)
 # TODO: Figure out why df csv isnt updating into mysql (bc I can pull keywords from sql just fine?)
@@ -79,7 +74,7 @@ def find_interest(cursor, pytrends):
     logging.info("Commencing get_historical_interest search...")
     try:
         historical_df = pytrends.get_historical_interest(singlekeywordlist, frequency='daily', year_start=2010, month_start=1,
-                                                         day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='CA', gprop='', sleep=3)
+                                                         day_start=1, hour_start=0, year_end=2020, month_end=8, day_end=1, hour_end=0, geo='US', gprop='', sleep=3)
     except requests.exceptions.RequestException as e:
         raise SystemExit(e)
 
