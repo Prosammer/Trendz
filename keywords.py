@@ -11,10 +11,8 @@ from sqlalchemy import create_engine
 
 # TODO: Need to find fix so that I can find 5 related terms at a time (fewer requests)
 # TODO: Change to specific categories
-# TODO: Decide if I want to keep the GEO for both functions as Canada
-# TODO: Should look into  "['link' 'value'] not found in axis" error during related topics lookup
-
-
+# TODO: Change logic to save both "rising" and "top" topics
+# TODO: Need to change code to set checked=true only after keywords have been successfully added
 def setup():
     """ Sets up logging and connections to pytrends and mysql"""
     proxylist = [
@@ -107,9 +105,12 @@ def related_topics(current_kw):
             for k, df in innerdict.items():
                 # Selects the rising topics of the dataframe (instead of the top ones)
                 if str(k) == "rising" and df is not None:
+                    print(df.head())
                     df = df.drop(columns=["link", "value"])
                     df["parent"] = str(current_kw)
                     # Returns a single dataframe
+                    print("\n\n---------------------\n\n\n")
+                    print(df.head())
                     return df
     except Exception as e:
         print("This is the exception:\n\n\n", str(e))
@@ -128,14 +129,11 @@ def retrieve_childless_keywords(num_of_keywords, connection):
 
         idlist = [f[0] for f in listofdicts]
         resultlist = [f[1] for f in listofdicts]
-        t = tuple(idlist)
-        sqlupdate = "UPDATE keywords SET checked = TRUE WHERE id IN {}".format(t)
-        cursor.execute(sqlupdate)
-        connection.commit()
-        return resultlist
+        idtuple = tuple(idlist)
+        return resultlist, idtuple
 
 
-def submitnewkeywords(df, engine):
+def submitnewkeywords(df, connection,engine, idtuple):
     # Uses sqlalchemy to submit the concatenated dataframe to mysql (doesn't check for duplicates)
     # df.to_sql('pandas_temp',index = False, con = engine, if_exists = 'replace')
 
@@ -148,22 +146,33 @@ def submitnewkeywords(df, engine):
     )
 
     with connection.cursor() as cursor:
-        insert_sql = """INSERT INTO keywords ("formattedValue","topic_mid","topic_title","topic_type","parent") SELECT "formattedValue","topic_mid","topic_title","topic_type","parent" FROM pandas_temp"""
-        cursor.execute(insert_sql)
+        try:
+            insert_sql = """INSERT INTO keywords ("formattedValue","topic_mid","topic_title","topic_type","parent") SELECT "formattedValue","topic_mid","topic_title","topic_type","parent" FROM pandas_temp"""
+            cursor.execute(insert_sql)
+            sqlupdate = "UPDATE keywords SET checked = TRUE WHERE id IN {}".format(idtuple)
+            cursor.execute(sqlupdate)
+        except psycopg2.errors.UniqueViolation:
+            print("Some topics already existed:\n\n",psycopg2.errors.UniqueViolation)
         connection.commit()
         connection.close()
 
+def checked_column_update(idtuple):
 
-# Set desired number of cycles (for easy testing)
+
+
+
+
 num_of_keywords = 2
 
 if __name__ == "__main__":
+    # Set desired number of cycles (for easy testing)
+
     connection, pytrends, engine = setup()
     print("Number of Cycles to run: ", str(num_of_keywords))
 
     # Find num_of_keywords childless keywords in database
-    #childless_keywords_list = retrieve_childless_keywords(num_of_keywords, connection)
-    childless_keywords_list = open("starter_keywords.txt").readlines()
+    childless_keywords_list, idtuple = retrieve_childless_keywords(num_of_keywords, connection)
+    # childless_keywords_list = open("starter_keywords.txt").readlines()
     children_kw_list = []
     # Find children keywords for all childless keywords
     for i in childless_keywords_list:
@@ -180,5 +189,5 @@ if __name__ == "__main__":
     children_df = df_list_concatenator(children_kw_list)
 
     print("Running submit newkeywords...\n\n")
-    submitnewkeywords(children_df, engine)
+    submitnewkeywords(children_df,connection, engine, idtuple)
     print("New keywords submitted!")
