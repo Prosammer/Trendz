@@ -108,6 +108,7 @@ def related_topics(current_kw):
                     print(df.head())
                     df = df.drop(columns=["link", "value"])
                     df["parent"] = str(current_kw)
+
                     # Returns a single dataframe
                     print("\n\n---------------------\n\n\n")
                     print(df.head())
@@ -146,17 +147,13 @@ def submitnewkeywords(df, connection,engine, idtuple):
     )
 
     with connection.cursor() as cursor:
-        try:
-            insert_sql = """INSERT INTO keywords ("formattedValue","topic_mid","topic_title","topic_type","parent") SELECT "formattedValue","topic_mid","topic_title","topic_type","parent" FROM pandas_temp"""
-            cursor.execute(insert_sql)
-            sqlupdate = "UPDATE keywords SET checked = TRUE WHERE id IN {}".format(idtuple)
-            cursor.execute(sqlupdate)
-        except psycopg2.errors.UniqueViolation:
-            print("Some topics already existed:\n\n",psycopg2.errors.UniqueViolation)
+        insert_sql = """INSERT INTO keywords ("formattedValue","topic_mid","topic_title","topic_type","parent") SELECT "formattedValue","topic_mid","topic_title","topic_type","parent" FROM pandas_temp ON CONFLICT DO NOTHING;"""
+        cursor.execute(insert_sql)
+        sqlupdate = "UPDATE keywords SET checked = TRUE WHERE id IN {}".format(idtuple)
+        cursor.execute(sqlupdate)
         connection.commit()
         connection.close()
 
-def checked_column_update(idtuple):
 
 
 
