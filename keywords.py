@@ -15,6 +15,18 @@ from sqlalchemy import create_engine
 # TODO: Need to change code to set checked=true only after keywords have been successfully added
 def setup():
     """ Sets up logging and connections to pytrends and mysql"""
+    logging.root.handlers = []
+    logging.basicConfig(
+        level=logging.DEBUG,
+        handlers=[
+            logging.FileHandler("debug.log", mode="w"),
+            logging.StreamHandler(sys.stdout),
+        ],
+    )
+
+    logging.info("Greetings, Pleb!")
+    logging.info(f"Number of keywords to find: {num_of_keywords}")
+
     proxylist = [
         "https://104.168.51.141:3128",
         "https://192.186.134.157:3128",
@@ -38,19 +50,9 @@ def setup():
         "https://45.72.0.245:3128",
     ]
 
-    logging.root.handlers = []
-    logging.basicConfig(
-        level=logging.DEBUG,
-        handlers=[
-            logging.FileHandler("debug.log", mode="w"),
-            logging.StreamHandler(sys.stdout),
-        ],
-    )
 
-    logging.info("Greetings, Pleb!")
-    logging.info(f"Number of keywords to find: {num_of_keywords}")
 
-    pytrends = TrendReq(hl="en-CA", tz=-240, retries=2, backoff_factor=0.2)
+    pytrends = TrendReq(hl="en-CA", tz=-240, retries=2, backoff_factor=0.2,proxies=proxylist)
 
     # Get database password from file:
     f = open("secrets.txt", "r")
@@ -98,7 +100,7 @@ def df_list_concatenator(dflist):
 def related_topics(current_kw):
     # Note: Max number of queries is 5.
     # Payload only needed for interest_over_time(), interest_by_region() & related_queries()
-    pytrends.build_payload(kw_list=[current_kw], timeframe="today 3-m", geo="US")
+    pytrends.build_payload(kw_list=[current_kw], timeframe="today 3-y", geo="US")
     related_topics_dict = pytrends.related_topics()
     try:
         for key, innerdict in related_topics_dict.items():
@@ -110,7 +112,6 @@ def related_topics(current_kw):
                     df["parent"] = str(current_kw)
 
                     # Returns a single dataframe
-                    print("\n\n---------------------\n\n\n")
                     print(df.head())
                     return df
     except Exception as e:
