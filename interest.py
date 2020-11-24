@@ -36,7 +36,7 @@ def setloc(location):
     
     connection = pymysql.connect(host=host,
     user='doadmin',
-    password='sjmfco80xbdp0rjl',
+    password=password2,
     port=25060,
     db='trends',
     charset='utf8mb4',

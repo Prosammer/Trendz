@@ -20,7 +20,7 @@ pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,)
 
 connection = pymysql.connect(host='localhost',
 user='root',
-password='Jura55ic5',
+password=password,
 db='trends',
 charset='utf8mb4',
 cursorclass=pymysql.cursors.DictCursor)
@@ -29,7 +29,7 @@ cursorclass=pymysql.cursors.DictCursor)
 # create sqlalchemy engine
 engine = create_engine("mysql+pymysql://{user}:{pw}@localhost/{db}"
 .format(user="root",
-pw="Jura55ic5",
+pw=password,
 db="trends"))
 
 
