@@ -26,17 +26,17 @@ def setloc(location):
     location=location
     logging.info(f"Your chosen location is: {location}")
     if location == "digitalocean":
-        host='private-db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com'
+        host='private-db-mysql-tor1-72034-do-user-8152651-0.b.db.ondigitalocean.com'
         pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2,proxies=proxylist)
     elif location == "remote":
-        host='db-mysql-tor1-7***REMOVED***-0.b.db.ondigitalocean.com'
+        host='db-mysql-tor1-72034-do-user-8152651-0.b.db.ondigitalocean.com'
         pytrends = TrendReq(hl='en-US', tz=-240,retries=2,backoff_factor=0.2)
     else:
         raise Exception("Must specify location: 'remote' or 'local'." )
     
     connection = pymysql.connect(host=host,
-    user='***REMOVED***',
-    password='***REMOVED***',
+    user='doadmin',
+    password='sjmfco80xbdp0rjl',
     port=25060,
     db='trends',
     charset='utf8mb4',
